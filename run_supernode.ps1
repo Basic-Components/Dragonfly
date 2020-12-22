@@ -1,0 +1,2 @@
+docker run -d --name supernode --restart=always -p 8001:8001 -p 8002:8002 dragonflyoss/supernode:1.0.6 -Dsupernode.advertiseIp=127.0.0.1
+docker run --name supernode -p 8001:8001 -p 8002:8002 dragonflyoss/supernode:1.0.6 -Dsupernode.advertiseIp=127.0.0.1

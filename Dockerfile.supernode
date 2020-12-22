@@ -6,16 +6,21 @@ WORKDIR /go/src/github.com/dragonflyoss/Dragonfly
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
 RUN apk update && apk --no-cache add build-base git &&  rm -rf /var/cache/apk/*
 COPY . /go/src/github.com/dragonflyoss/Dragonfly
-RUN make build-supernode && make install-supernode
-RUN make build-client && make install-client
+# build dfget
+RUN go build -ldflags "-s -w" -o bin/dfget cmd/dfget/main.go
+# build dfdaemon
+RUN go build -ldflags "-s -w" -o bin/dfdaemon cmd/dfdaemon/main.go
+# build supernode
+RUN go build -ldflags "-s -w" -o bin/supernode cmd/supernode/main.go
 
 FROM --platform=$TARGETPLATFORM nginx:1.19.2-alpine as build_img
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
 RUN apk update && apk --no-cache add tzdata ca-certificates bash && rm -rf /var/cache/apk/*
-COPY --from=builder /go/src/github.com/dragonflyoss/Dragonfly/hack/start-supernode.sh /root/start.sh
-COPY --from=builder /go/src/github.com/dragonflyoss/Dragonfly/hack/supernode-nginx.conf /etc/nginx/nginx.conf
-COPY --from=builder /opt/dragonfly/df-supernode/supernode /opt/dragonfly/df-supernode/supernode
-COPY --from=builder /opt/dragonfly/df-client /opt/dragonfly/df-client
+ADD ./hack/start-supernode.sh /root/start.sh
+ADD ./hack/supernode-nginx.conf /etc/nginx/nginx.conf
+COPY --from=build_bin /go/src/github.com/dragonflyoss/Dragonfly/bin/supernode /opt/dragonfly/df-supernode
+COPY --from=build_bin /go/src/github.com/dragonflyoss/Dragonfly/bin/dfdaemon /opt/dragonfly/df-client
+COPY --from=build_bin /go/src/github.com/dragonflyoss/Dragonfly/bin/dfget /opt/dragonfly/df-client
 RUN ln -s /opt/dragonfly/df-client/dfget /usr/local/bin/dfget
 EXPOSE 8001 8002
 

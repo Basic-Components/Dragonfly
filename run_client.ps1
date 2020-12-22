@@ -1,0 +1,1 @@
+docker run -d --name dfclient -p 65001:65001 hsz1273327/dragonfly-client:amd64-1.0.6 --registry https://index.docker.io
