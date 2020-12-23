@@ -53,3 +53,4 @@ docs/.build/static/images/
 
 *.key
 *.crt
+data

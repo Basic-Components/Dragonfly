@@ -1,0 +1,45 @@
+version: "2.4"
+
+x-log: &default-log
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  supernode:
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile.supernode
+    image: dragonflyoss/supernode:latest
+    logging:
+      <<: *default-log
+    cpus: 0.8
+    mem_limit: 100m
+    memswap_limit: 200m
+    # restart: on-failure
+    ports:
+      - "8001:8001"
+      - "8002:8002"
+    volumes:
+      - "./data/admin/supernode:/home/admin/supernode"
+      # - "data/etc/dragonfly/supernode.yml:/etc/dragonfly/supernode.yml"
+    # command: ["--download-port=8001"]
+
+  dfclient:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    logging:
+      <<: *default-log
+    ports:
+      - "65001:65001"
+    volumes:
+      # - "data/etc/dragonfly:/etc/dragonfly"
+      - "./data/small-dragonfly:/root/.small-dragonfly"
+    cpus: 0.8
+    mem_limit: 100m
+    memswap_limit: 200m
+    # restart: on-failure
+    depends_on:
+      - supernode
+    command: ["--registry", "https://index.docker.io", "--node", "host.docker.internal"]
